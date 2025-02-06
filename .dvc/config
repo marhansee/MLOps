@@ -1,4 +1,9 @@
+[core]
+    remote = amazons3
+    autostage = true
 ['remote "drive"']
     url = ../1GIK0bjekiVCYCMhpuVfuC8l7SGEEzAtG
 ['remote "remote"']
     url = ../1GIK0bjekiVCYCMhpuVfuC8l7SGEEzAtG
+['remote "amazons3"']
+    url = ../s3:::mlopsbucketdak
