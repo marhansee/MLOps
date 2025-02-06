@@ -3,42 +3,11 @@ import os
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-from torchvision import datasets, transforms, models
+from torchvision import datasets, transforms
 import wandb
 from torch.optim.lr_scheduler import StepLR
-import torch.nn as nn
-from torchvision.models import ResNet50_Weights
 from thop import profile, clever_format
-
-
-class CustomResNet(nn.Module):
-    def __init__(self):
-        super(CustomResNet, self).__init__()
-        self.resnet = models.resnet50(weights=ResNet50_Weights.DEFAULT)
-        self.resnet.fc = nn.Identity()  # Remove final layer
-
-        # Freeze the inner layers (e.g., layers before 'layer4')
-        for name, param in self.resnet.named_parameters():
-            if not name.startswith("layer1") and not name.startswith("layer2"):
-                param.requires_grad = True
-            else:
-                param.requires_grad = False
-
-        self.classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(2048, 1024),
-            nn.BatchNorm1d(1024),  # BatchNorm after Linear layer
-            nn.ReLU(),
-            nn.Linear(1024, 512),
-            nn.BatchNorm1d(512),  # BatchNorm after Linear layer
-            nn.ReLU(),
-            nn.Linear(512, 196),  # Assuming 196 classes
-        )
-
-    def forward(self, x):
-        x = self.resnet(x)
-        x = self.classifier(x)
-        return x
+from model import CustomResNet
 
 
 def profile_model(model, input_size):
@@ -96,6 +65,7 @@ def validate(model, device, test_loader):
 
 def main():
     parser = argparse.ArgumentParser(description='Miniproject DL')
+
     parser.add_argument('--batch-size', type=int, default=16, metavar='N',
                         help='input batch size for training (default: 16)')
     parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
@@ -147,7 +117,7 @@ def main():
     model = CustomResNet().to(device)
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=4, gamma=0.1)
-    profile_model(model, input_size=(1, 3, 275, 275))
+    #profile_model(model, input_size=(1, 3, 275, 275))
 
     # Initialize best_loss to a large value
     best_loss = float('inf')
