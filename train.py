@@ -25,7 +25,7 @@ def profile_model(model, input_size):
 
 
 
-def train(args, model, device, train_loader, optimizer, epoch):
+def train(config, model, device, train_loader, optimizer, epoch):
     model.train()
     epoch_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -38,7 +38,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
 
         epoch_loss += loss.item()
 
-        if batch_idx % args.log_interval == 0:
+        if batch_idx % config['log_interval'] == 0:
             print(f"Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)} "
                   f"({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}")
             wandb.log({'Train Loss': loss.item()})
