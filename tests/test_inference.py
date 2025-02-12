@@ -18,7 +18,7 @@ def dummy_model():
     model.eval()
     
     # Define dummy output
-    model.return_value = torch.tensor([[0.1, 0.9]])
+    model.return_value = torch.tensor([[0.1, 0.9, 0.0]])
     return model
 
 @pytest.fixture
@@ -30,7 +30,10 @@ def dummy_image():
     """Creates a dummy image (300x300 with 3 color channels)."""
     return np.random.randint(0, 255, (300, 300, 3), dtype=np.uint8)
 
-
+@pytest.fixture
+def dummy_image_tensor():
+    """Creates a dummy tensor shaped like a real image batch."""
+    return torch.randn(1, 3, 275, 275)
 
 
 def test_load_model():
@@ -67,3 +70,25 @@ def test_preprocess_image(dummy_image, device):
     assert processed_image.shape == (1, 3, 275, 275)
     assert processed_image.dtype == torch.float32  # Ensure float type
     assert processed_image.device == device  # Ensure correct device
+
+
+def test_predict(dummy_model, dummy_image_tensor):
+    """Test predict() function to ensure it returns correct class index."""
+    predicted_class = predict(dummy_model, dummy_image_tensor)
+
+    # The mocked model should return class index 1 (highest in logits)
+    assert predicted_class == 1
+
+@patch("pandas.read_csv")
+def test_get_class_name(mock_read_csv):
+    """Test get_class_name() function using a mocked CSV file."""
+    
+    # Mock DataFrame with fake class names
+    mock_df = pd.DataFrame({"Model": ["Car A", "Car B", "Car C"]})
+    mock_read_csv.return_value = mock_df
+
+    predicted_class = 2  
+    class_name = get_class_name(predicted_class)
+
+    # Expecting index 2 → "Car B"
+    assert class_name == "Car B"
