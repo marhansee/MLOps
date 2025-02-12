@@ -1,11 +1,7 @@
 [core]
-    remote = amazons3
     autostage = true
-['remote "drive"']
-    url = ../1GIK0bjekiVCYCMhpuVfuC8l7SGEEzAtG
-['remote "remote"']
-    url = ../1GIK0bjekiVCYCMhpuVfuC8l7SGEEzAtG
-['remote "amazons3"']
-    url = ../s3:::mlopsbucketdak
+    remote = myremote
 ['remote "myremote"']
-    url = s3://mlopsbucketdaki/data/
+    url = s3://mlopsbucketdak/data/
+['remote "model_remote"']
+    url = s3://mlopsbucketdak/model/
