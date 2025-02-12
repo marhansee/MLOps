@@ -1,5 +1,7 @@
 numpy>=1.21.5,<2.0
 pandas==2.2.3
-pytorch==2.5.1
+torch==2.5.1
 torchvision==0.15.2
-opencv
+opencv-python
+thop
+wandb

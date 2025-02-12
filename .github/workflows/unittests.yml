@@ -37,7 +37,7 @@ jobs:
         run: |
           conda create -n test-env python=${{ matrix.python-version }} pip -y
           conda run -n test-env python -m pip install --upgrade pip
-          conda run -n test-env pip install pytest thop wandb
+          conda run -n test-env pip install pytest
           conda run -n test-env pip install -r requirements.txt
 
       - name: Run Tests
