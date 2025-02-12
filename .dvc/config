@@ -7,3 +7,5 @@
     url = ../1GIK0bjekiVCYCMhpuVfuC8l7SGEEzAtG
 ['remote "amazons3"']
     url = ../s3:::mlopsbucketdak
+['remote "myremote"']
+    url = s3://mlopsbucketdaki/data/
