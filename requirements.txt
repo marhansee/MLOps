@@ -1,7 +1,5 @@
-numpy==>=1.21.5,<2.0
+numpy>=1.21.5,<2.0
 pandas==2.2.3
-torch==2.0.1
+pytorch==2.5.1
 torchvision==0.15.2
-opencv-python
-thop
-wandb
+opencv
