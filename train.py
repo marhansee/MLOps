@@ -122,9 +122,9 @@ def main():
     ])
 
     # Datasets and loaders
-    train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'), 
+    train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
                                      transform=test_transform)
-    test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'), 
+    test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
 
     train_loader = torch.utils.data.DataLoader(train_data, **train_kwargs)
@@ -134,9 +134,9 @@ def main():
     model = CustomResNet().to(device)
     optimizer = optim.Adam(model.parameters(), lr=config['lr'])
     scheduler = StepLR(optimizer=optimizer,
-                       step_size=config['scheduler']['step_size'], 
+                       step_size=config['scheduler']['step_size'],
                        gamma=config['scheduler']['gamma'])
-    
+
     #profile_model(model, input_size=(1, 3, 275, 275))
 
     # Initialize best_loss to a large value

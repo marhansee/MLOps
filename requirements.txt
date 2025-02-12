@@ -6,3 +6,4 @@ torchvision==0.15.2a0
 wandb==0.18.7
 opencv==4.7.0
 
+pre-commit
