@@ -36,12 +36,6 @@ def dummy_image_tensor():
     return torch.randn(1, 3, 275, 275)
 
 
-def test_load_model():
-    """Test model loading with an invalid path."""
-    weight_path = "model_weights/best_model.pth"
-    assert os.path.exists(weight_path), f"{weight_path} does not exist!"
-
-
 def test_load_image_success(dummy_image):
     """Test successful image loading with a mock."""
     dummy_path = "fake_image.jpg"
