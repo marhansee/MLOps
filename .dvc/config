@@ -2,4 +2,3 @@
     autostage = true
 ['remote "myremote"']
     url = gs://mlopsdaki
-    credentialpath = /home/martin-birch/.config/gcloud/application_default_credentials.json
