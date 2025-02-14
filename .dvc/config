@@ -1,7 +1,4 @@
 [core]
     autostage = true
-    remote = myremote
 ['remote "myremote"']
-    url = s3://mlopsbucketdaki/data/
-['remote "model_remote"']
-    url = s3://mlopsbucketdaki/model/
+    url = gs://mlopsdaki
