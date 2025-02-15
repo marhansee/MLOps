@@ -14,7 +14,7 @@ import yaml
 def load_config(yaml_path):
     with open(yaml_path, 'r') as file:
         config = yaml.safe_load(file)
-        return config
+    return config
 
 def profile_model(model, input_size):
     device = next(model.parameters()).device
