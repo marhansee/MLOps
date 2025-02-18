@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "m:\UNI Daki\2. semester\github\MLOps\train.py", line 161, in <module>
+    main()
+  File "m:\UNI Daki\2. semester\github\MLOps\train.py", line 125, in main
+    train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\Martin\miniconda3\envs\MLOps\Lib\site-packages\torchvision\datasets\folder.py", line 309, in __init__
+    super().__init__(
+  File "c:\Users\Martin\miniconda3\envs\MLOps\Lib\site-packages\torchvision\datasets\folder.py", line 144, in __init__
+    classes, class_to_idx = self.find_classes(self.root)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\Martin\miniconda3\envs\MLOps\Lib\site-packages\torchvision\datasets\folder.py", line 218, in find_classes
+    return find_classes(directory)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\Martin\miniconda3\envs\MLOps\Lib\site-packages\torchvision\datasets\folder.py", line 40, in find_classes
+    classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
+                                             ^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [WinError 3] Den angivne sti blev ikke fundet: 'data/car_data\\train'

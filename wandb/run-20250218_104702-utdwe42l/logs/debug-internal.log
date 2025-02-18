@@ -1,0 +1,15 @@
+{"time":"2025-02-18T10:47:03.4133661+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.6","symlink path":"M:\\UNI Daki\\2. semester\\github\\MLOps\\wandb\\run-20250218_104702-utdwe42l\\logs\\debug-core.log"}
+{"time":"2025-02-18T10:47:03.7045761+01:00","level":"INFO","msg":"created new stream","id":"utdwe42l"}
+{"time":"2025-02-18T10:47:03.7045761+01:00","level":"INFO","msg":"stream: started","id":"utdwe42l"}
+{"time":"2025-02-18T10:47:03.7055734+01:00","level":"INFO","msg":"sender: started","stream_id":"utdwe42l"}
+{"time":"2025-02-18T10:47:03.7055734+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"utdwe42l"}
+{"time":"2025-02-18T10:47:03.7055734+01:00","level":"INFO","msg":"handler: started","stream_id":"utdwe42l"}
+{"time":"2025-02-18T10:47:04.0779629+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-02-18T10:47:04.3425728+01:00","level":"INFO","msg":"stream: closing","id":"utdwe42l"}
+{"time":"2025-02-18T10:47:04.3425728+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-02-18T10:47:04.3431458+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-02-18T10:47:05.4697844+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-02-18T10:47:05.7017185+01:00","level":"INFO","msg":"handler: closed","stream_id":"utdwe42l"}
+{"time":"2025-02-18T10:47:05.7017185+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"utdwe42l"}
+{"time":"2025-02-18T10:47:05.7017185+01:00","level":"INFO","msg":"sender: closed","stream_id":"utdwe42l"}
+{"time":"2025-02-18T10:47:05.7022617+01:00","level":"INFO","msg":"stream: closed","id":"utdwe42l"}

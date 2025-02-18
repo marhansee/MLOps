@@ -1,0 +1,7 @@
+{"time":"2025-02-18T10:49:13.1821012+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.6","symlink path":"M:\\UNI Daki\\2. semester\\github\\MLOps\\wandb\\run-20250218_104912-gtwhyzoh\\logs\\debug-core.log"}
+{"time":"2025-02-18T10:49:13.2966614+01:00","level":"INFO","msg":"created new stream","id":"gtwhyzoh"}
+{"time":"2025-02-18T10:49:13.2966614+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"gtwhyzoh"}
+{"time":"2025-02-18T10:49:13.2966614+01:00","level":"INFO","msg":"sender: started","stream_id":"gtwhyzoh"}
+{"time":"2025-02-18T10:49:13.2966614+01:00","level":"INFO","msg":"handler: started","stream_id":"gtwhyzoh"}
+{"time":"2025-02-18T10:49:13.2966614+01:00","level":"INFO","msg":"stream: started","id":"gtwhyzoh"}
+{"time":"2025-02-18T10:49:13.6588062+01:00","level":"INFO","msg":"Starting system monitor"}

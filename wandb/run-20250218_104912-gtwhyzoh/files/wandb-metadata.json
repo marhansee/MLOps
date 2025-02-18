@@ -1,0 +1,42 @@
+{
+  "os":  "Windows-10-10.0.19045-SP0",
+  "python":  "CPython 3.11.11",
+  "startedAt":  "2025-02-18T09:49:13.178958Z",
+  "program":  "m:\\UNI Daki\\2. semester\\github\\MLOps\\train.py",
+  "codePath":  "train.py",
+  "git":  {
+    "remote":  "https://github.com/marhansee/MLOps.git",
+    "commit":  "6a65788b380e33c3de34b4db0ce9680e717c3cee"
+  },
+  "email":  "mpham22@student.aau.dk",
+  "root":  "M:\\UNI Daki\\2. semester\\github\\MLOps",
+  "host":  "DESKTOP-6SUJFEP",
+  "executable":  "c:\\Users\\Martin\\miniconda3\\envs\\MLOps\\python.exe",
+  "codePathLocal":  "train.py",
+  "cpu_count":  4,
+  "cpu_count_logical":  8,
+  "gpu":  "NVIDIA GeForce GTX 1070",
+  "gpu_count":  1,
+  "disk":  {
+    "/":  {
+      "total":  "999676702720",
+      "used":  "878397255680"
+    }
+  },
+  "memory":  {
+    "total":  "17092440064"
+  },
+  "cpu":  {
+    "count":  4,
+    "countLogical":  8
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA GeForce GTX 1070",
+      "memoryTotal":  "8589934592",
+      "cudaCores":  1920,
+      "architecture":  "Pascal"
+    }
+  ],
+  "cudaVersion":  "12.6"
+}

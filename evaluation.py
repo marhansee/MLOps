@@ -69,3 +69,5 @@ def main():
         test_loader=test_loader
     )
 
+if __name__ == '__main__':
+    main()

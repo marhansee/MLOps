@@ -1,0 +1,50 @@
+_wandb:
+    value:
+        cli_version: 0.19.6
+        m: []
+        python_version: 3.11.11
+        t:
+            "1":
+                - 1
+                - 41
+                - 55
+                - 105
+            "2":
+                - 1
+                - 41
+                - 55
+                - 105
+            "3":
+                - 16
+                - 23
+                - 55
+            "4": 3.11.11
+            "5": 0.19.6
+            "8":
+                - 3
+                - 5
+            "12": 0.19.6
+            "13": windows-amd64
+batch_size:
+    value: 16
+data_dir:
+    value: data
+epochs:
+    value: 10
+log_interval:
+    value: 100
+lr:
+    value: 0.0001
+no_cuda:
+    value: false
+scheduler:
+    value:
+        gamma: 0.1
+        step_size: 4
+seed:
+    value: 1
+test_batch_size:
+    value: 1000
+wandb:
+    value:
+        project: miniproject_DL
