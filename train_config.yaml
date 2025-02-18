@@ -4,7 +4,7 @@ epochs: 10
 lr: 0.0001
 seed: 1
 log_interval: 100
-data_dir: 'archive'
+data_dir: 'data/car_data/car_data'
 no_cuda: False
 scheduler:
   step_size: 4

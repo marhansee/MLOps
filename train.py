@@ -14,7 +14,7 @@ import yaml
 def load_config(yaml_path):
     with open(yaml_path, 'r') as file:
         config = yaml.safe_load(file)
-        return config
+    return config
 
 def profile_model(model, input_size):
     device = next(model.parameters()).device
@@ -74,30 +74,6 @@ def main():
     config = load_config(config_path)
 
 
-    """
-    Commented arguments.
-    Remove the commented arguments when yaml-config has been tested and works.
-    """
-    # parser = argparse.ArgumentParser(description='Miniproject DL')
-
-    # parser.add_argument('--batch-size', type=int, default=16, metavar='N',
-    #                     help='input batch size for training (default: 16)')
-    # parser.add_argument('--test-batch-size', type=int, default=1000, metavar='N',
-    #                     help='input batch size for testing (default: 1000)')
-    # parser.add_argument('--epochs', type=int, default=10, metavar='N',
-    #                     help='number of epochs to train (default: 10)')
-    # parser.add_argument('--lr', type=float, default=1e-4, metavar='LR',
-    #                     help='learning rate (default: 1e-4)')
-    # parser.add_argument('--no-cuda', action='store_true', default=False,
-    #                     help='disables CUDA training')
-    # parser.add_argument('--seed', type=int, default=1, metavar='S',
-    #                     help='random seed (default: 1)')
-    # parser.add_argument('--log-interval', type=int, default=100, metavar='N',
-    #                     help='how many batches to wait before logging training status')
-    # parser.add_argument('--data-dir', type=str, default='archive',
-    #                     help='path to the dataset directory (default: archive)')
-    # args = parser.parse_args()
-
     # Initialize WandB
     wandb.login()
     wandb.init(project=config['wandb']['project'], config=config)
@@ -122,9 +98,9 @@ def main():
     ])
 
     # Datasets and loaders
-    train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'), 
+    train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
                                      transform=test_transform)
-    test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'), 
+    test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
 
     train_loader = torch.utils.data.DataLoader(train_data, **train_kwargs)
@@ -134,9 +110,9 @@ def main():
     model = CustomResNet().to(device)
     optimizer = optim.Adam(model.parameters(), lr=config['lr'])
     scheduler = StepLR(optimizer=optimizer,
-                       step_size=config['scheduler']['step_size'], 
+                       step_size=config['scheduler']['step_size'],
                        gamma=config['scheduler']['gamma'])
-    
+
     #profile_model(model, input_size=(1, 3, 275, 275))
 
     # Initialize best_loss to a large value
