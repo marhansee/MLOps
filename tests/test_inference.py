@@ -16,7 +16,7 @@ def dummy_model():
     """
     model = MagicMock()
     model.eval()
-    
+
     # Define dummy output
     model.return_value = torch.tensor([[0.1, 0.9, 0.0]])
     return model
@@ -45,7 +45,7 @@ def test_load_image_success(dummy_image):
 
     assert image.shape == (300, 300, 3)  # Check expected shape
     assert image.dtype == np.uint8  # Ensure correct data type
-    
+
 
 def test_load_image_failure():
     """Test failure case when the image file is invalid."""
@@ -76,12 +76,12 @@ def test_predict(dummy_model, dummy_image_tensor):
 @patch("pandas.read_csv")
 def test_get_class_name(mock_read_csv):
     """Test get_class_name() function using a mocked CSV file."""
-    
+
     # Mock DataFrame with fake class names
     mock_df = pd.DataFrame({"Model": ["Car A", "Car B", "Car C"]})
     mock_read_csv.return_value = mock_df
 
-    predicted_class = 2  
+    predicted_class = 2
     class_name = get_class_name(predicted_class)
 
     # Expecting index 2 → "Car B"
