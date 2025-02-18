@@ -59,13 +59,13 @@ def main():
         transforms.Resize((275, 275)),
         transforms.ToTensor()
     ])
-    
+
     test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
     test_loader = torch.utils.data.DataLoader(test_data, **test_kwargs)
 
     model = load_model(config['weight_path'], device=device)
-    
+
     validate(
         model=model,
         device=device,
