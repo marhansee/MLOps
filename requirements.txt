@@ -5,4 +5,5 @@ torchvision==0.15.2
 opencv-python
 thop
 wandb
-dvc-s3
+dvc-gs
+pre-commit
