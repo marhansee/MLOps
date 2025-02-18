@@ -7,7 +7,7 @@ from model import CustomResNet
 
 def load_model(weight_path, device):
     model = CustomResNet().to(device)
-    model.load_state_dict(weight_path)
+    model.load_state_dict(torch.load(weight_path, map_location=device))
 
     return model
 
@@ -22,11 +22,14 @@ def validate(model, device, test_loader):
     test_loss = 0
     correct = 0
 
+    print("Initializing validation")
+
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += F.cross_entropy(output, target, reduction='sum').item()  # Sum up batch loss
+            print("Test loss:", test_loss)
             pred = output.argmax(dim=1, keepdim=True)  # Get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -61,7 +64,7 @@ def main():
                                      transform=test_transform)
     test_loader = torch.utils.data.DataLoader(test_data, **test_kwargs)
 
-    model = load_model(config['weight_path'])
+    model = load_model(config['weight_path'], device=device)
     
     validate(
         model=model,
