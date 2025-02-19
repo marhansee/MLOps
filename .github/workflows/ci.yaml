@@ -1,0 +1,15 @@
+name: AI-LAB test job
+on:
+push:
+    branches:
+    - main
+jobs:
+test-hpc:
+    runs-on: self-hosted
+    steps:
+    - name: Check out repo
+        uses: actions/checkout@v3
+
+    - name: AI-LAB hostname info
+        run: |
+        sbatch --output=hostname_output.txt --wrap="hostname"
