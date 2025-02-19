@@ -7,3 +7,4 @@ thop
 wandb
 dvc-gs
 pre-commit
+pytest
