@@ -26,16 +26,26 @@ def profile_model(model, input_size):
 
 
 
-def train(config, model, device, train_loader, optimizer, epoch):
+def train(config, model, device, train_loader, optimizer, epoch, scaler):
     model.train()
     epoch_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        output = model(data)
-        loss = F.cross_entropy(output, target)
-        loss.backward()
-        optimizer.step()
+
+        # Implement AMP
+        with torch.cuda.amp.autocast():
+            output = model(data)
+            loss = F.cross_entropy(output, target)
+
+        # Scale the gradients and do backprop.
+        scaler.scale(loss).backward()
+
+        # Unscale gradients
+        scaler.optimizer.step()
+
+        # Update scaler
+        scaler.update()
 
         epoch_loss += loss.item()
 
@@ -92,6 +102,10 @@ def main():
     ddp_model = DDP(model, device_ids=[device_id])
 
 
+    # Define scaler for Automatic Mixed Precision
+    scaler = torch.cuda.amp.GradScaler()
+
+
     train_kwargs = {'batch_size': config['batch_size']}
     test_kwargs = {'batch_size': config['test_batch_size'], 'shuffle': False}
 
@@ -129,7 +143,16 @@ def main():
 
     # Training loop
     for epoch in range(1, config['epochs'] + 1):
-        avg_loss = train(config, ddp_model, device_id, train_loader, optimizer, epoch)
+        avg_loss = train(
+            config=config, 
+            model=ddp_model, 
+            device=device_id, 
+            train_loader=train_loader, 
+            optimizer=optimizer, 
+            epoch=epoch,
+            scaler=scaler
+                )
+    
         val_loss, val_accuracy = validate(ddp_model, device_id, test_loader)  # Validation step
         scheduler.step()
         # Save model if validation loss improves
