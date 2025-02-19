@@ -1,0 +1,15 @@
+{"time":"2025-02-19T10:50:49.5901328+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.6","symlink path":"C:\\Users\\marti\\Desktop\\Uni\\Design og Anvendelse af AI\\Github\\MLOps\\wandb\\run-20250219_105048-d9vtgpuj\\logs\\debug-core.log"}
+{"time":"2025-02-19T10:50:50.0915862+01:00","level":"INFO","msg":"created new stream","id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:50.0917004+01:00","level":"INFO","msg":"stream: started","id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:50.0917004+01:00","level":"INFO","msg":"handler: started","stream_id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:50.0917004+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:50.0917004+01:00","level":"INFO","msg":"sender: started","stream_id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:50.3999765+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-02-19T10:50:50.8799974+01:00","level":"INFO","msg":"stream: closing","id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:50.8805007+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-02-19T10:50:50.8810191+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-02-19T10:50:52.2286167+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-02-19T10:50:52.458215+01:00","level":"INFO","msg":"handler: closed","stream_id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:52.458215+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:52.458215+01:00","level":"INFO","msg":"sender: closed","stream_id":"d9vtgpuj"}
+{"time":"2025-02-19T10:50:52.458215+01:00","level":"INFO","msg":"stream: closed","id":"d9vtgpuj"}

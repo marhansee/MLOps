@@ -1,0 +1,31 @@
+{
+  "os":  "Windows-10-10.0.22631-SP0",
+  "python":  "CPython 3.10.14",
+  "startedAt":  "2025-02-19T09:50:49.579297Z",
+  "program":  "c:\\Users\\marti\\Desktop\\Uni\\Design og Anvendelse af AI\\Github\\MLOps\\train_ddp.py",
+  "codePath":  "train_ddp.py",
+  "git":  {
+    "remote":  "https://github.com/marhansee/MLOps.git",
+    "commit":  "06b46fe072edd0a825ef97c065985df0842dee09"
+  },
+  "email":  "mpham22@student.aau.dk",
+  "root":  "C:\\Users\\marti\\Desktop\\Uni\\Design og Anvendelse af AI\\Github\\MLOps",
+  "host":  "BOOK-VHTJP04MN8",
+  "executable":  "c:\\Users\\marti\\miniconda3\\envs\\daki3\\python.exe",
+  "codePathLocal":  "train_ddp.py",
+  "cpu_count":  12,
+  "cpu_count_logical":  16,
+  "disk":  {
+    "/":  {
+      "total":  "435091927040",
+      "used":  "257494962176"
+    }
+  },
+  "memory":  {
+    "total":  "16773271552"
+  },
+  "cpu":  {
+    "count":  12,
+    "countLogical":  16
+  }
+}

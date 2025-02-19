@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "c:\Users\marti\Desktop\Uni\Design og Anvendelse af AI\Github\MLOps\train_ddp.py", line 146, in <module>
+    main()
+  File "c:\Users\marti\Desktop\Uni\Design og Anvendelse af AI\Github\MLOps\train_ddp.py", line 83, in main
+    torch.cuda.set_device(int(os.environ[config['ddp']['set_device']]))
+  File "c:\Users\marti\miniconda3\envs\daki3\lib\os.py", line 680, in __getitem__
+    raise KeyError(key) from None
+KeyError: 'LOCAL_RANK'
