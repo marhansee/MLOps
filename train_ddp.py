@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import StepLR
 from thop import profile, clever_format
 from model import CustomResNet
 import yaml
+import deepspeed
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -42,7 +43,7 @@ def train(config, model, device, train_loader, optimizer, epoch, scaler):
         scaler.scale(loss).backward()
 
         # Unscale gradients
-        scaler.optimizer.step()
+        scaler.model.step()
 
         # Update scaler
         scaler.update()
@@ -99,7 +100,12 @@ def main():
     model = CustomResNet().to(device_id)
 
     # Wrap model in DDP
-    ddp_model = DDP(model, device_ids=[device_id])
+    ds_config_path = "ds_config.json"
+    model, optimizer, _, _ = deepspeed.initialize(
+	model=model,
+	model_parameters=model.parameters(),
+	config=ds_config_path
+    )
 
 
     # Define scaler for Automatic Mixed Precision
@@ -130,7 +136,6 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_data, **test_kwargs)
 
     # Optimizer, and scheduler
-    optimizer = optim.Adam(ddp_model.parameters(), lr=config['lr'])
     scheduler = StepLR(optimizer=optimizer,
                        step_size=config['scheduler']['step_size'],
                        gamma=config['scheduler']['gamma'])
@@ -144,15 +149,15 @@ def main():
     # Training loop
     for epoch in range(1, config['epochs'] + 1):
         avg_loss = train(
-            config=config, 
-            model=ddp_model, 
-            device=device_id, 
-            train_loader=train_loader, 
-            optimizer=optimizer, 
+            config=config,
+            model=ddp_model,
+            device=device_id,
+            train_loader=train_loader,
+            optimizer=optimizer,
             epoch=epoch,
             scaler=scaler
                 )
-    
+
         val_loss, val_accuracy = validate(ddp_model, device_id, test_loader)  # Validation step
         scheduler.step()
         # Save model if validation loss improves
