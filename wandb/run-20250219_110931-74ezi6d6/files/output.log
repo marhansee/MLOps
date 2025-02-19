@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/martin_tp/Documents/GitHub/MLOps/train_ddp.py", line 146, in <module>
+    main()
+  File "/home/martin_tp/Documents/GitHub/MLOps/train_ddp.py", line 83, in main
+    torch.cuda.set_device(int(os.environ[config['ddp']['set_device']]))
+  File "/home/martin_tp/anaconda3/envs/MLOps/lib/python3.11/site-packages/torch/cuda/__init__.py", line 350, in set_device
+    torch._C._cuda_setDevice(device)
+  File "/home/martin_tp/anaconda3/envs/MLOps/lib/python3.11/site-packages/torch/cuda/__init__.py", line 247, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: Found no NVIDIA driver on your system. Please check that you have an NVIDIA GPU and installed a driver from http://www.nvidia.com/Download/index.aspx

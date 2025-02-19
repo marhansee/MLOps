@@ -1,0 +1,31 @@
+{
+  "os":  "Linux-6.11.0-17-generic-x86_64-with-glibc2.39",
+  "python":  "CPython 3.11.11",
+  "startedAt":  "2025-02-19T10:09:31.943568Z",
+  "program":  "/home/martin_tp/Documents/GitHub/MLOps/train_ddp.py",
+  "codePath":  "train_ddp.py",
+  "git":  {
+    "remote":  "https://github.com/marhansee/MLOps.git",
+    "commit":  "b8848a4e34361f9a14e711ffb51d71a06350acf6"
+  },
+  "email":  "mpham22@student.aau.dk",
+  "root":  "/home/martin_tp/Documents/GitHub/MLOps",
+  "host":  "Mars02-MINIPC-DL",
+  "executable":  "/home/martin_tp/anaconda3/envs/MLOps/bin/python",
+  "codePathLocal":  "train_ddp.py",
+  "cpu_count":  12,
+  "cpu_count_logical":  16,
+  "disk":  {
+    "/":  {
+      "total":  "54308225024",
+      "used":  "46781120512"
+    }
+  },
+  "memory":  {
+    "total":  "16360931328"
+  },
+  "cpu":  {
+    "count":  12,
+    "countLogical":  16
+  }
+}
