@@ -42,7 +42,7 @@ def train(config, model, device, train_loader, optimizer, epoch, scaler):
         scaler.scale(loss).backward()
 
         # Unscale gradients
-        scaler.optimizer.step()
+        scaler.step(optimizer)
 
         # Update scaler
         scaler.update()
