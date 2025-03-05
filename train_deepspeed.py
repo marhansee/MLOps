@@ -28,7 +28,7 @@ def profile_model(model, input_size):
 
 
 
-def train(model_engine, train_loader, epoch, scaler):
+def train(model_engine, train_loader, scaler):
     model_engine.train()
     total_loss = 0
 
@@ -82,7 +82,8 @@ def main():
     # wandb.init(project=config['wandb']['project'], config=config)
 
     # Initialize ranks and process groups
-    torch.cuda.set_device(int(os.environ.get(config['ddp']['set_device'], 0)))
+    device_key = config['ddp']['set_device']
+    torch.cuda.set_device(int(os.environ.get(device_key, "0")))
     dist.init_process_group(config['ddp']['process_group'])
     rank = dist.get_rank()
 
@@ -101,16 +102,23 @@ def main():
     train_kwargs.update(cuda_kwargs)
     test_kwargs.update(cuda_kwargs)
 
+    train_transform = transforms.Compose([
+        transforms.Resize((275, 275)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToTensor(),
+        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+    ])
+
     test_transform = transforms.Compose([
         transforms.Resize((275, 275)),
         transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-        transforms.RandomHorizontalFlip(p=0.5)
+        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
+
 
     # Datasets and loaders
     train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
-                                     transform=test_transform)
+                                     transform=train_transform)
     test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
 
@@ -118,7 +126,7 @@ def main():
     test_loader = torch.utils.data.DataLoader(test_data, **test_kwargs)
 
         # Wrap model in DeepSpeed
-    model_engine, optimizer, _, train_loader, _ = deepspeed.initialize(
+    ddp_model, _, _, train_loader, _ = deepspeed.initialize(
         model=model,
         model_parameters=model.parameters(),
         config='ds_config.json'
@@ -132,18 +140,10 @@ def main():
 
     # Training loop
     for epoch in range(1, config['epochs'] + 1):
-        avg_loss = train(
-            config=config, 
-            model=ddp_model, 
-            device=device_id, 
-            train_loader=train_loader, 
-            optimizer=optimizer, 
-            epoch=epoch,
-            scaler=scaler
-                )
-    
+        avg_loss = train(ddp_model, train_loader, scaler)
         val_loss, val_accuracy = validate(ddp_model, device_id, test_loader)  # Validation step
-        scheduler.step()
+        
+        
         # Save model if validation loss improves
         if val_loss < best_loss:
             best_loss = val_loss
@@ -152,7 +152,7 @@ def main():
                 print(f"Epoch {epoch}: New best model saved with validation loss {best_loss:.6f}")
 
         print(f"Epoch {epoch}: Average Train Loss: {avg_loss:.6f}, Validation Loss: {val_loss:.6f}, "
-              f"Validation Accuracy: {val_accuracy:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}")
+              f"Validation Accuracy: {val_accuracy:.2f}%")
 
 if __name__ == '__main__':
         main()

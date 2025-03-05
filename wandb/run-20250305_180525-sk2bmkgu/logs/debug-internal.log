@@ -1,0 +1,15 @@
+{"time":"2025-03-05T18:05:26.1569941+01:00","level":"INFO","msg":"stream: starting","core version":"0.19.6","symlink path":"M:\\UNI Daki\\2. semester\\github\\MLOps\\wandb\\run-20250305_180525-sk2bmkgu\\logs\\debug-core.log"}
+{"time":"2025-03-05T18:05:26.4907583+01:00","level":"INFO","msg":"created new stream","id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:26.4907583+01:00","level":"INFO","msg":"stream: started","id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:26.4907583+01:00","level":"INFO","msg":"handler: started","stream_id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:26.4907583+01:00","level":"INFO","msg":"sender: started","stream_id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:26.4907583+01:00","level":"INFO","msg":"writer: Do: started","stream_id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:26.975323+01:00","level":"INFO","msg":"Starting system monitor"}
+{"time":"2025-03-05T18:05:27.2304943+01:00","level":"INFO","msg":"stream: closing","id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:27.2310084+01:00","level":"INFO","msg":"Stopping system monitor"}
+{"time":"2025-03-05T18:05:27.2315435+01:00","level":"INFO","msg":"Stopped system monitor"}
+{"time":"2025-03-05T18:05:28.7755112+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-03-05T18:05:29.0711833+01:00","level":"INFO","msg":"handler: closed","stream_id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:29.0711833+01:00","level":"INFO","msg":"sender: closed","stream_id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:29.0711833+01:00","level":"INFO","msg":"writer: Close: closed","stream_id":"sk2bmkgu"}
+{"time":"2025-03-05T18:05:29.0711833+01:00","level":"INFO","msg":"stream: closed","id":"sk2bmkgu"}

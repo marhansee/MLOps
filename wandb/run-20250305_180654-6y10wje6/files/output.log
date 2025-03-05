@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "m:\UNI Daki\2. semester\github\MLOps\train_deepspeed.py", line 158, in <module>
+    main()
+  File "m:\UNI Daki\2. semester\github\MLOps\train_deepspeed.py", line 85, in main
+    torch.cuda.set_device(int(os.environ.get([config['ddp']['set_device']], 0)))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen _collections_abc>", line 774, in get
+  File "<frozen os>", line 676, in __getitem__
+  File "<frozen os>", line 749, in encodekey
+  File "<frozen os>", line 744, in check_str
+TypeError: str expected, not list
