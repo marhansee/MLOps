@@ -1,8 +1,10 @@
-deepspeed==0.16.3
-numpy==2.2.3
+numpy>=1.21.5,<2.0
 pandas==2.2.3
-PyYAML==6.0.2
-PyYAML==6.0.2
-thop==0.1.1.post2209072238
-torch==2.6.0
-torchvision==0.21.0
+torch==2.2.0
+torchvision==0.17.0
+opencv-python
+thop
+wandb
+dvc-gs
+pre-commit
+pytest
