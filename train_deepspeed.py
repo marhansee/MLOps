@@ -68,7 +68,7 @@ def validate(model, device, test_loader):
     print(f'\nValidation set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)\n')
 
     # Log validation metrics
-    wandb.log({'Validation Loss': test_loss, 'Validation Accuracy': accuracy})
+    # wandb.log({'Validation Loss': test_loss, 'Validation Accuracy': accuracy})
 
     return test_loss, accuracy
 
@@ -78,11 +78,11 @@ def main():
     torch.manual_seed(config['seed'])
 
     # Initialize WandB
-    wandb.login()
-    wandb.init(project=config['wandb']['project'], config=config)
+    # wandb.login()
+    # wandb.init(project=config['wandb']['project'], config=config)
 
     # Initialize ranks and process groups
-    torch.cuda.set_device(int(os.environ[config['ddp']['set_device']]))
+    torch.cuda.set_device(int(os.environ.get(config['ddp']['set_device'], 0)))
     dist.init_process_group(config['ddp']['process_group'])
     rank = dist.get_rank()
 
