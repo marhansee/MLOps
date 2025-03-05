@@ -2,7 +2,7 @@ numpy>=1.21.5,<2.0
 pandas==2.2.3
 torch==2.2.0
 torchvision==0.17.0
-opencv-python
+opencv-python-headless
 thop
 wandb
 dvc-gs
