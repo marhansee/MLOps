@@ -19,33 +19,25 @@ def load_config(yaml_path):
         config = yaml.safe_load(file)
     return config
 
-def profile_model(model, input_size):
-    device = next(model.parameters()).device
-    sample_input = torch.randn(*input_size).to(device)
-    macs, params = profile(model, inputs=(sample_input,))
-    macs, params = clever_format([macs, params], "%.3f")
-    print(f"model profiling: \nMACS:{macs}\nParams: {params}")
 
-
-
-def train(model_engine, train_loader, scaler):
+def train(model_engine, train_loader):
     model_engine.train()
     total_loss = 0
 
     for batch_idx, (data, target) in enumerate(train_loader):
-        data, target = data.to(model_engine.local_rank), target.to(model_engine.local_rank)
+        data, target = data.to(model_engine.local_rank).half(), target.to(model_engine.local_rank)
 
         model_engine.zero_grad()
-        with torch.cuda.amp.autocast():
-            output = model_engine(data)
-            loss = F.cross_entropy(output, target)
+        
+        output = model_engine(data)
+        loss = F.cross_entropy(output, target)
 
-        scaler.scale(loss).backward()
+        model_engine.backward(loss)
         model_engine.step()  # Replaces optimizer.step()
-        scaler.update()
 
         total_loss += loss.item()
 
+   
     return total_loss / len(train_loader)
 
 
@@ -57,6 +49,9 @@ def validate(model, device, test_loader):
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
+            
+            data = data.half() # Ensure data is in FP16
+
             output = model(data)
             test_loss += F.cross_entropy(output, target, reduction='sum').item()  # Sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # Get the index of the max log-probability
@@ -68,7 +63,7 @@ def validate(model, device, test_loader):
     print(f'\nValidation set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)\n')
 
     # Log validation metrics
-    # wandb.log({'Validation Loss': test_loss, 'Validation Accuracy': accuracy})
+    wandb.log({'Validation Loss': test_loss, 'Validation Accuracy': accuracy})
 
     return test_loss, accuracy
 
@@ -77,22 +72,18 @@ def main():
     config = load_config(config_path)
     torch.manual_seed(config['seed'])
 
+
+    deepspeed.init_distributed()
     # Initialize WandB
-    # wandb.login()
-    # wandb.init(project=config['wandb']['project'], config=config)
+    wandb.login()
+    wandb.init(project=config['wandb']['project'], config=config)
 
     # Initialize ranks and process groups
-    device_key = config['ddp']['set_device']
-    torch.cuda.set_device(int(os.environ.get(device_key, "0")))
-    dist.init_process_group(config['ddp']['process_group'])
     rank = dist.get_rank()
 
     # Define device ID and load model with device
     device_id = rank % torch.cuda.device_count()
     model = CustomResNet().to(device_id)
-
-    # Define scaler for Automatic Mixed Precision
-    scaler = torch.cuda.amp.GradScaler()
 
 
     train_kwargs = {'batch_size': config['batch_size']}
@@ -125,14 +116,14 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_data, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(test_data, **test_kwargs)
 
-        # Wrap model in DeepSpeed
-    ddp_model, _, _, train_loader, _ = deepspeed.initialize(
+
+    # Wrap model in DeepSpeed
+    ddp_model,_, _, _ = deepspeed.initialize(
         model=model,
         model_parameters=model.parameters(),
-        config='ds_config.json'
+        config='ds_config.json',
     )
 
-    #profile_model(model, input_size=(1, 3, 275, 275))
 
     # Initialize best_loss to a large value
     best_loss = float('inf')
@@ -140,9 +131,8 @@ def main():
 
     # Training loop
     for epoch in range(1, config['epochs'] + 1):
-        avg_loss = train(ddp_model, train_loader, scaler)
+        avg_loss = train(ddp_model, train_loader)
         val_loss, val_accuracy = validate(ddp_model, device_id, test_loader)  # Validation step
-        
         
         # Save model if validation loss improves
         if val_loss < best_loss:
