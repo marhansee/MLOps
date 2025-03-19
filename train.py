@@ -9,7 +9,7 @@ from torch.optim.lr_scheduler import StepLR
 from thop import profile, clever_format
 from model import CustomResNet
 import yaml
-
+import time
 
 def load_config(yaml_path):
     with open(yaml_path, 'r') as file:
@@ -90,16 +90,22 @@ def main():
         train_kwargs.update(cuda_kwargs)
         test_kwargs.update(cuda_kwargs)
 
-    test_transform = transforms.Compose([
+    train_transform = transforms.Compose([
         transforms.Resize((275, 275)),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         transforms.RandomHorizontalFlip(p=0.5)
     ])
 
+    test_transform = transforms.Compose([
+        transforms.Resize((275, 275)),
+        transforms.ToTensor()
+    ])
+
+
     # Datasets and loaders
     train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
-                                     transform=test_transform)
+                                     transform=train_transform)
     test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
 
@@ -127,11 +133,19 @@ def main():
         # Save model if validation loss improves
         if val_loss < best_loss:
             best_loss = val_loss
-            torch.save(model.state_dict(), "best_model.pth")
-            print(f"Epoch {epoch}: New best model saved with validation loss {best_loss:.6f}")
+            #torch.save(model.state_dict(), "best_model.pth")
+            #print(f"Epoch {epoch}: New best model saved with validation loss {best_loss:.6f}")
 
         print(f"Epoch {epoch}: Average Train Loss: {avg_loss:.6f}, Validation Loss: {val_loss:.6f}, "
               f"Validation Accuracy: {val_accuracy:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}")
 
 if __name__ == '__main__':
+        start_time = time.time()
         main()
+        end_time = time.time()
+
+        execution_time = end_time - start_time
+     
+        print(f"Execution time in seconds: {execution_time}")
+
+

@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import StepLR
 from thop import profile, clever_format
 from model import CustomResNet
 import yaml
+import time
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -161,4 +162,13 @@ def main():
               f"Validation Accuracy: {val_accuracy:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}")
 
 if __name__ == '__main__':
+
+        start_time = time.time()
         main()
+        end_time = time.time()
+
+        execution_time = end_time - start_time
+        print(f"Execution time in seconds: {execution_time}")
+
+
+
