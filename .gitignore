@@ -2,3 +2,4 @@
 /data
 /best_model_ddp_amp.pth
 /best_model_ddp.pth
+/best_model_quant.pth
