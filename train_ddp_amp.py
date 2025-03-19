@@ -26,21 +26,26 @@ def profile_model(model, input_size):
 
 
 
-def train(config, model, device, train_loader, optimizer, epoch):
+def train(config, model, device, train_loader, optimizer, epoch, scaler):
     model.train()
     epoch_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
 
-        output = model(data)
-        loss = F.cross_entropy(output, target)
+        # Implement AMP
+        with torch.cuda.amp.autocast():
+            output = model(data)
+            loss = F.cross_entropy(output, target)
 
         # Scale the gradients and do backprop.
-        loss.backward()
+        scaler.scale(loss).backward()
 
         # Unscale gradients
-        optimizer.step()
+        scaler.step(optimizer)
+
+        # Update scaler
+        scaler.update()
 
         epoch_loss += loss.item()
 
@@ -97,6 +102,10 @@ def main():
     ddp_model = DDP(model, device_ids=[device_id])
 
 
+    # Define scaler for Automatic Mixed Precision
+    scaler = torch.cuda.amp.GradScaler()
+
+
     train_kwargs = {'batch_size': config['batch_size']}
     test_kwargs = {'batch_size': config['test_batch_size'], 'shuffle': False}
 
@@ -104,21 +113,16 @@ def main():
     train_kwargs.update(cuda_kwargs)
     test_kwargs.update(cuda_kwargs)
 
-    train_transform = transforms.Compose([
+    test_transform = transforms.Compose([
         transforms.Resize((275, 275)),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         transforms.RandomHorizontalFlip(p=0.5)
     ])
 
-    test_transform = transforms.Compose([
-        transforms.Resize((275, 275)),
-        transforms.ToTensor()
-    ])
-
     # Datasets and loaders
     train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
-                                     transform=train_transform)
+                                     transform=test_transform)
     test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
 
@@ -145,7 +149,8 @@ def main():
             device=device_id, 
             train_loader=train_loader, 
             optimizer=optimizer, 
-            epoch=epoch
+            epoch=epoch,
+            scaler=scaler
                 )
     
         val_loss, val_accuracy = validate(ddp_model, device_id, test_loader)  # Validation step
@@ -154,7 +159,7 @@ def main():
         if val_loss < best_loss:
             best_loss = val_loss
             if rank == 0:
-                torch.save(ddp_model.state_dict(), "best_model_ddp.pth")
+                torch.save(ddp_model.state_dict(), "best_model_ddp_amp.pth")
                 print(f"Epoch {epoch}: New best model saved with validation loss {best_loss:.6f}")
 
         print(f"Epoch {epoch}: Average Train Loss: {avg_loss:.6f}, Validation Loss: {val_loss:.6f}, "
