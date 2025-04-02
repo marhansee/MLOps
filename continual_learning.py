@@ -17,7 +17,7 @@ class Net(nn.Module):
         self.dropout1 = nn.Dropout(0.25)
         self.dropout2 = nn.Dropout(0.5)
         self.fc1 = nn.Linear(9216, 128)
-        self.fc2 = nn.Linear(128, 5) # Adjusted output to 5 for 0-4 digits
+        self.fc2 = nn.Linear(128, 10) 
 
     def forward(self, x):
         x = self.conv1(x)
@@ -56,7 +56,7 @@ def train(args, model, device, train_loader, optimizer, epoch):
 
 
 
-def test(model, device, test_loader):
+def test(model, device, test_loader, loader_name):
     model.eval()
     test_loss = 0
     correct = 0
@@ -75,7 +75,7 @@ def test(model, device, test_loader):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), accuracy))
     
-    wandb.log({"Test Loss": test_loss, "Test Accuracy": accuracy})
+    wandb.log({f"{loader_name} Loss": test_loss, f"{loader_name} Accuracy": accuracy})
 
 
 def main():
@@ -85,7 +85,7 @@ def main():
     wandb.init(project="MLOps_project_k8")
 
     # Create folder for snapshot
-    os.mkdir(f"snapshots", exist_ok=True)
+    os.makedirs(f"snapshots", exist_ok=True)
 
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -111,6 +111,9 @@ def main():
                         help='how many batches to wait before logging training status')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
+    parser.add_argument('--load_model', type=bool, default=False)
+    parser.add_argument('--weights_path', type=str, default="snapshots/mnist_cnn.pt")
+
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
     use_mps = not args.no_mps and torch.backends.mps.is_available()
@@ -145,26 +148,50 @@ def main():
                         transform=transform)
 
     # Filter out digits   
-    train_mask = full_train_dataset.targets < 5 # 0-4 digits
-    test_mask = full_test_dataset.targets < 5
- 
-    dataset1 = torch.utils.data.Subset(full_train_dataset, torch.nonzero(train_mask, as_tuple=True)[0])
-    dataset2 = torch.utils.data.Subset(full_test_dataset, torch.nonzero(test_mask, as_tuple=True)[0])
+    train_mask_0_4 = full_train_dataset.targets < 5 # 0-4 digits
+    train_mask_5_9 = 4 < full_train_dataset.targets # 5-9 digits
 
-    train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
-    test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
+    test_mask_0_4 = full_test_dataset.targets < 5
+    test_mask_5_9 = 4 < full_test_dataset.targets
+    
+    # Train
+    dataset_0_4 = torch.utils.data.Subset(full_train_dataset, 
+                                torch.nonzero(train_mask_0_4, as_tuple=True)[0])
+    dataset_5_9 = torch.utils.data.Subset(full_train_dataset, 
+                                torch.nonzero(train_mask_5_9, as_tuple=True)[0])
+    
+    # Test
+    dataset2_0_4 = torch.utils.data.Subset(full_test_dataset, 
+                                torch.nonzero(test_mask_0_4, as_tuple=True)[0])
+    dataset2_5_9 = torch.utils.data.Subset(full_test_dataset, 
+                                torch.nonzero(test_mask_5_9, as_tuple=True)[0])
+
+    # Define loaders for digits
+    train_loader_0_4 = torch.utils.data.DataLoader(dataset_0_4,**train_kwargs)
+    test_loader_0_4 = torch.utils.data.DataLoader(dataset2_0_4, **test_kwargs)
+
+    train_loader_5_9 = torch.utils.data.DataLoader(dataset_5_9,**train_kwargs)
+    test_loader_5_9 = torch.utils.data.DataLoader(dataset2_5_9, **test_kwargs)
 
     model = Net().to(device)
+
+    # Load model weights
+    if args.load_model == True:
+        model.load_state_dict(torch.load(args.weights_path))
+
+
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
-        test(model, device, test_loader)
+        train(args, model, device, train_loader_5_9, optimizer, epoch) # Train on 5-9 digits
+        test(model, device, test_loader_0_4, loader_name="0_to_4") # Evaluate performance for 0-4 
+        test(model, device, test_loader_5_9, loader_name="5_to_9") # EValuate performance for 5-9
+
         scheduler.step()
     
     if args.save_model:
-        torch.save(model.state_dict(), "snapshots/mnist_cnn.pt")
+        torch.save(model.state_dict(), "snapshots/mnist_cnn_5_9.pt")
 
 
 if __name__ == '__main__':
