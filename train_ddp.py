@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import StepLR
 from thop import profile, clever_format
 from model import CustomResNet
 import yaml
+import time
 
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -26,26 +27,21 @@ def profile_model(model, input_size):
 
 
 
-def train(config, model, device, train_loader, optimizer, epoch, scaler):
+def train(config, model, device, train_loader, optimizer, epoch):
     model.train()
     epoch_loss = 0.0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
 
-        # Implement AMP
-        with torch.cuda.amp.autocast():
-            output = model(data)
-            loss = F.cross_entropy(output, target)
+        output = model(data)
+        loss = F.cross_entropy(output, target)
 
         # Scale the gradients and do backprop.
-        scaler.scale(loss).backward()
+        loss.backward()
 
         # Unscale gradients
-        scaler.step(optimizer)
-
-        # Update scaler
-        scaler.update()
+        optimizer.step()
 
         epoch_loss += loss.item()
 
@@ -102,10 +98,6 @@ def main():
     ddp_model = DDP(model, device_ids=[device_id])
 
 
-    # Define scaler for Automatic Mixed Precision
-    scaler = torch.cuda.amp.GradScaler()
-
-
     train_kwargs = {'batch_size': config['batch_size']}
     test_kwargs = {'batch_size': config['test_batch_size'], 'shuffle': False}
 
@@ -113,16 +105,21 @@ def main():
     train_kwargs.update(cuda_kwargs)
     test_kwargs.update(cuda_kwargs)
 
-    test_transform = transforms.Compose([
+    train_transform = transforms.Compose([
         transforms.Resize((275, 275)),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         transforms.RandomHorizontalFlip(p=0.5)
     ])
 
+    test_transform = transforms.Compose([
+        transforms.Resize((275, 275)),
+        transforms.ToTensor()
+    ])
+
     # Datasets and loaders
     train_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'train'),
-                                     transform=test_transform)
+                                     transform=train_transform)
     test_data = datasets.ImageFolder(os.path.join(config['data_dir'], 'test'),
                                      transform=test_transform)
 
@@ -149,8 +146,7 @@ def main():
             device=device_id, 
             train_loader=train_loader, 
             optimizer=optimizer, 
-            epoch=epoch,
-            scaler=scaler
+            epoch=epoch
                 )
     
         val_loss, val_accuracy = validate(ddp_model, device_id, test_loader)  # Validation step
@@ -159,11 +155,20 @@ def main():
         if val_loss < best_loss:
             best_loss = val_loss
             if rank == 0:
-                torch.save(ddp_model.state_dict(), "best_model.pth")
+                torch.save(ddp_model.state_dict(), "best_model_ddp.pth")
                 print(f"Epoch {epoch}: New best model saved with validation loss {best_loss:.6f}")
 
         print(f"Epoch {epoch}: Average Train Loss: {avg_loss:.6f}, Validation Loss: {val_loss:.6f}, "
               f"Validation Accuracy: {val_accuracy:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}")
 
 if __name__ == '__main__':
+
+        start_time = time.time()
         main()
+        end_time = time.time()
+
+        execution_time = end_time - start_time
+        print(f"Execution time in seconds: {execution_time}")
+
+
+

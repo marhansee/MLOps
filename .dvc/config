@@ -1,5 +1,12 @@
 [core]
     autostage = true
+<<<<<<< HEAD
     remote = myremote
+=======
+<<<<<<< HEAD
+=======
+    remote = myremote
+>>>>>>> 8af81a2 (added quantization file)
+>>>>>>> fd07c7aaa1949a665cd5b94b7848b568f3343084
 ['remote "myremote"']
     url = gs://mlopsdaki
