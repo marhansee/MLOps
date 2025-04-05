@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
+from torch.utils.data import DataLoader, Subset
 import wandb
 import os
 
@@ -51,8 +52,10 @@ def train(args, model, device, train_loader, optimizer, epoch):
             if args.dry_run:
                 break
 
-    print(f"Train Epoch: {epoch}, Loss: {loss.item()}")
-    wandb.log({f"Loss": loss.item()})
+        print(f"Train Epoch: {epoch}, Loss: {loss.item()}")
+        if batch_idx % 500 == 0:
+            wandb.log({f"Loss": loss.item()})
+
 
 
 
@@ -60,23 +63,40 @@ def test(model, device, test_loader, loader_name):
     model.eval()
     test_loss = 0
     correct = 0
+    total_samples = 0
+
     with torch.no_grad():
-        for data, target in test_loader:
+        for batch_idx, (data, target) in enumerate(test_loader):
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+
+            batch_loss = F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            test_loss += batch_loss
+
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            batch_correct = pred.eq(target.view_as(pred)).sum().item()
+            correct += batch_correct
 
-    test_loss /= len(test_loader.dataset)
-    accuracy = 100. * correct / len(test_loader.dataset)
+            batch_size = len(data)
+            total_samples += batch_size
 
-    
+            if (batch_idx + 1) % 500 == 0:
+                batch_accuracy = 100. * correct / total_samples
+                print(f'Batch {batch_idx + 1}: Accuracy: {batch_accuracy:.2f}%')
+                wandb.log({f"{loader_name} Accuracy (Batch {batch_idx+1})": batch_accuracy})
+
+        test_loss /= len(test_loader.dataset)
+        accuracy = 100. * correct / len(test_loader.dataset)
+
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), accuracy))
     
     wandb.log({f"{loader_name} Loss": test_loss, f"{loader_name} Accuracy": accuracy})
 
+
+def filter_dataset(dataset, labels):
+    indices = [i for i, (img, label) in enumerate(dataset) if label in labels]
+    return Subset(dataset, indices)
 
 def main():
 
@@ -113,6 +133,8 @@ def main():
                         help='For Saving the current Model')
     parser.add_argument('--load_model', type=bool, default=False)
     parser.add_argument('--weights_path', type=str, default="snapshots/mnist_cnn.pt")
+    parser.add_argument('--save_model_name', type=str, default="mnist_cnn_0_4.pt")
+    parser.add_argument('--train_loader_name', type=str, default="train_loader_5_9")
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -147,31 +169,18 @@ def main():
     full_test_dataset = datasets.MNIST('../data', train=False, 
                         transform=transform)
 
-    # Filter out digits   
-    train_mask_0_4 = full_train_dataset.targets < 5 # 0-4 digits
-    train_mask_5_9 = 4 < full_train_dataset.targets # 5-9 digits
+    train_dataset_0_4 = filter_dataset(full_train_dataset, [0, 1, 2, 3, 4])
+    train_dataset_5_9 = filter_dataset(full_train_dataset, [5, 6, 7, 8, 9])
 
-    test_mask_0_4 = full_test_dataset.targets < 5
-    test_mask_5_9 = 4 < full_test_dataset.targets
-    
-    # Train
-    dataset_0_4 = torch.utils.data.Subset(full_train_dataset, 
-                                torch.nonzero(train_mask_0_4, as_tuple=True)[0])
-    dataset_5_9 = torch.utils.data.Subset(full_train_dataset, 
-                                torch.nonzero(train_mask_5_9, as_tuple=True)[0])
-    
-    # Test
-    dataset2_0_4 = torch.utils.data.Subset(full_test_dataset, 
-                                torch.nonzero(test_mask_0_4, as_tuple=True)[0])
-    dataset2_5_9 = torch.utils.data.Subset(full_test_dataset, 
-                                torch.nonzero(test_mask_5_9, as_tuple=True)[0])
+    test_dataset_0_4 = filter_dataset(full_test_dataset, [0, 1, 2, 3, 4])
+    test_dataset_5_9 = filter_dataset(full_test_dataset, [5, 6, 7, 8, 9])
 
-    # Define loaders for digits
-    train_loader_0_4 = torch.utils.data.DataLoader(dataset_0_4,**train_kwargs)
-    test_loader_0_4 = torch.utils.data.DataLoader(dataset2_0_4, **test_kwargs)
 
-    train_loader_5_9 = torch.utils.data.DataLoader(dataset_5_9,**train_kwargs)
-    test_loader_5_9 = torch.utils.data.DataLoader(dataset2_5_9, **test_kwargs)
+    # Define loaders
+    train_loader_0_4 = DataLoader(train_dataset_0_4, **train_kwargs)
+    train_loader_5_9 = DataLoader(train_dataset_5_9, **train_kwargs)
+    test_loader_0_4 = DataLoader(test_dataset_0_4, **test_kwargs)
+    test_loader_5_9 = DataLoader(test_dataset_5_9, **test_kwargs)
 
     model = Net().to(device)
 
@@ -183,15 +192,20 @@ def main():
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
 
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
+    if args.train_loader_name == 'train_loader_5_9':
+        train_loader = train_loader_5_9
+    else:
+        train_loader = train_loader_0_4
+
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader_5_9, optimizer, epoch) # Train on 5-9 digits
+        train(args, model, device, train_loader, optimizer, epoch) # Train on 5-9 digits
         test(model, device, test_loader_0_4, loader_name="0_to_4") # Evaluate performance for 0-4 
         test(model, device, test_loader_5_9, loader_name="5_to_9") # EValuate performance for 5-9
 
         scheduler.step()
     
     if args.save_model:
-        torch.save(model.state_dict(), "snapshots/mnist_cnn_5_9.pt")
+        torch.save(model.state_dict(), f"snapshots/{args.save_model_name}")
 
 
 if __name__ == '__main__':

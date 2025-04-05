@@ -9,3 +9,4 @@ dvc-gs
 pre-commit
 pytest
 deepspeed
+avalanche-lib
