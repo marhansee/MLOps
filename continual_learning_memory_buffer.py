@@ -8,9 +8,9 @@ import wandb
 import os
 from avalanche.benchmarks.classic import SplitMNIST
 from avalanche.training.supervised import Naive
-from avalanche.logging import WandBLogger
+from avalanche.logging import TextLogger
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, forgetting_metrics
-from avalanche.training.plugins import ReplayPlugin, EvaluationPlugin
+from avalanche.training.plugins import ReplayPlugin, EvaluationPlugin, EWCPlugin
 from avalanche.benchmarks.classic import SplitMNIST
 import wandb
 
@@ -68,8 +68,6 @@ def main():
                         help='random seed (default: 1)')
     parser.add_argument('--save-model', action='store_true', default=False,
                         help='For Saving the current Model')
-    parser.add_argument('--load_model', type=bool, default=False)
-    parser.add_argument('--weights_path', type=str, default="snapshots/mnist_cnn.pt")
     parser.add_argument('--save_model_name', type=str, default="mnist_cnn_0_4.pt")
     parser.add_argument('--train_loader_name', type=str, default="train_loader_5_9")
     args = parser.parse_args()
@@ -87,32 +85,28 @@ def main():
     # Initialize model
     model = Net().to(device)
 
-    # Load model weights
-    if args.load_model == True:
-        model.load_state_dict(torch.load(args.weights_path))
-    
     # Define optimizer and scheduler
     optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
     scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
-    criterion = F.nll_loss()
 
     # Initialize memory buffer
     replay_plugin = ReplayPlugin(mem_size=1000)  # Stores 1000 samples from past tasks
+    ewc = EWCPlugin(ewc_lambda=0.001)
 
     # Set up wandb logger
-    wandb_logger = WandBLogger()
+    logger = TextLogger()
     eval_plugin = EvaluationPlugin(
         accuracy_metrics(epoch=True, experience=True),
         loss_metrics(epoch=True, experience=True),
         forgetting_metrics(experience=True),
-        loggers=[wandb_logger]
+        loggers=[logger]
     )
 
     # Define Avalanche training strategy
     strategy = Naive(
-        model, optimizer, criterion,
+        model, optimizer,
         train_mb_size=args.batch_size, eval_mb_size=args.test_batch_size, device=device,
-        plugins=[replay_plugin],
+        plugins=[replay_plugin, ewc],
         evaluator=eval_plugin
     )
 
@@ -121,9 +115,21 @@ def main():
     for experience in benchmark.train_stream:
         print(f"Training on Experience {experience.current_experience}")
 
-        for _ in range(args.epochs):
+        for epoch in range(args.epochs+1):
+            print(f"Epoch {epoch}/{args.epochs}")
+            
             strategy.train(experience)
             strategy.eval(benchmark.test_stream)
+
+            scheduler.step()
+
+            # Log accuracy for each task separately
+            task_accuracy = eval_plugin.get_all_metrics()
+
+            wandb.log({"0_4_accuracy": task_accuracy["Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp000"][1][0]})
+            wandb.log({"0_4_loss": task_accuracy["Loss_Exp/eval_phase/test_stream/Task000/Exp000"][1][0]})
+            wandb.log({"5_9_accuracy": task_accuracy["Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp001"][1][0]})
+            wandb.log({"5_9_loss": task_accuracy["Loss_Exp/eval_phase/test_stream/Task000/Exp001"][1][0]})
 
     # Save model
     if args.save_model:
