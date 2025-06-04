@@ -13,14 +13,6 @@ import time
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-if torch.cuda.is_available():
-    print(f"✅ CUDA is available! Number of GPUs: {torch.cuda.device_count()}")
-    for i in range(torch.cuda.device_count()):
-        print(f" - GPU {i}: {torch.cuda.get_device_name(i)}")
-else:
-    print("❌ CUDA is NOT available. You're using CPU only.")
-
-
 def load_config(yaml_path):
     with open(yaml_path, 'r') as file:
         config = yaml.safe_load(file)
