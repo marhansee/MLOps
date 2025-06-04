@@ -1,19 +1,14 @@
-# src/inference.py
-import sys
-import torch
+import os
+import time
 import cv2
 import numpy as np
 import pandas as pd
-from train import CustomResNet
-
-"""
-Refactored inference.py so we can test each individual function
-"""
-
-
+import torch
+import sys
+from model import CustomResNet
+import argparse
 
 def load_model(model_path, device):
-    """Loads a trained model from a given path."""
     model = CustomResNet()
     model.load_state_dict(torch.load(model_path, map_location=device))
     model = model.to(device)
@@ -21,12 +16,10 @@ def load_model(model_path, device):
     return model
 
 def load_image(image_path):
-    """Loads and preprocesses an image for model inference."""
     image = cv2.imread(image_path)
     if image is None:
-        raise ValueError("Failed to load the image. Check the file path.")
+        raise ValueError(f"Failed to load image: {image_path}")
     return image
-
 
 def preprocess_image(image, device):
     image = image / 255.0
@@ -37,31 +30,37 @@ def preprocess_image(image, device):
     return image
 
 def predict(model, image_tensor):
-    """Runs inference and returns the predicted class index."""
     with torch.no_grad():
         prediction = model(image_tensor)
     return prediction.argmax(dim=1).item()
 
 def get_class_name(predicted_class, csv_path='archive/names.csv'):
-    """Fetches the class name from the CSV file based on predicted class index."""
     df = pd.read_csv(csv_path)
     return df['Model'].iloc[predicted_class - 1]
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <image_path>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Run inference on images with a given model.")
+    parser.add_argument('--weights', type=str, default='model_weights/best_model.pth',
+                        help='Path to the model weights file')
+    args = parser.parse_args()
 
-    image_path = sys.argv[1]
-    classes = [i for i in range(1, 197)]
-
+    folder_path = 'inference_images'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = load_model('model_weights/best_model.pth', device)
-    image = load_image('inference_images/00076.jpg')
-    image_tensor = preprocess_image(image, device)
-    predicted_class = classes[predict(model, image_tensor)]
+    model = load_model(f'model_weights/{args.weights}', device)
 
-    print(f"Predicted Model: {get_class_name(predicted_class)}")
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            image_path = os.path.join(folder_path, filename)
+            try:
+                image = load_image(image_path)
+                image_tensor = preprocess_image(image, device)
+                start_time = time.time()
+                predicted_class = predict(model, image_tensor)
+                elapsed_time = time.time() - start_time
+                class_name = get_class_name(predicted_class)
+                print(f"{filename} -> Predicted Model: {class_name} (Inference time: {elapsed_time:.4f} seconds)")
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
 
 if __name__ == "__main__":
     main()
