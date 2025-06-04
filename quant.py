@@ -16,3 +16,9 @@ quantized_model = torch.quantization.quantize_dynamic(
 # Save the quantized model
 torch.save(quantized_model, "quantized_model.pth")
 print("Quantized model saved successfully!")
+
+def main():
+    pass
+
+if __name__ == '__main__':
+    main()
