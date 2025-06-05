@@ -8,6 +8,25 @@ import sys
 from model import CustomResNet
 import argparse
 import torchdrift
+from torchvision import transforms
+from PIL import Image
+from torch.utils.data import Dataset
+
+class SimpleImageFolderDataset(Dataset):
+    def __init__(self, folder_path, transform=None):
+        self.folder_path = folder_path
+        self.transform = transform
+        self.image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+    def __len__(self):
+        return len(self.image_files)
+
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.folder_path, self.image_files[idx])
+        image = Image.open(img_path).convert('RGB')
+        if self.transform:
+            image = self.transform(image)
+        return image  
 
 def load_model(model_path, device):
     model = CustomResNet()
@@ -17,22 +36,11 @@ def load_model(model_path, device):
     return model
 
 def load_image(image_path):
-    image = cv2.imread(image_path)
+    image = Image.open(image_path).convert("RGB")
     if image is None:
         raise ValueError(f"Failed to load image: {image_path}")
     return image
 
-def preprocess_image(image, device, args):
-    image = image / 255.0
-    image = cv2.resize(image, (275, 275))
-    image = (image - np.array([0.485, 0.456, 0.406])) / np.array([0.229, 0.224, 0.225])
-    image = torch.from_numpy(np.ascontiguousarray(image)).permute(2, 0, 1).float().to(device)
-    image = image.unsqueeze(0)
-
-    if args.add_drift:
-        image = synthesize_data_drift(image)
-
-    return image
 
 def predict(model, image_tensor):
     with torch.no_grad():
@@ -58,50 +66,53 @@ def synthesize_data_drift(x: torch.Tensor):
 
 def main():
     parser = argparse.ArgumentParser(description="Run inference on images with a given model.")
-    parser.add_argument('--weights', type=str, default='model_weights/best_model.pth',
+    parser.add_argument('--weights', type=str, default='model_weights/new_best_model.pth',
                         help='Path to the model weights file')
     parser.add_argument('--add_drift', action='store_true', 
                         help="If set, drift is added to the data")
     args = parser.parse_args()
 
-    folder_path = 'inference_images'
+    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = load_model(f'model_weights/{args.weights}', device)
+    model = load_model(f'{args.weights}', device)
+
+    inference_transform = transforms.Compose([
+        transforms.Resize((275, 275)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+    ])
+
+    train_kwargs = {'batch_size': 16}
+    folder = 'data/car_data/car_data/train/Volvo XC90 SUV 2007'
+    train_data = SimpleImageFolderDataset(folder, transform=inference_transform)
+    train_loader = torch.utils.data.DataLoader(train_data, **train_kwargs)
 
     # Load drift detector
-    drift_detector = torchdrift.detectors.KernelMMDDriftDetector()
-    state_dict = torch.load('drift_detector.pth')
-    drift_detector.load_state_dict(state_dict)
+    drift_detector = torch.load('drift_detector.pth', map_location=device)
+    print("Loaded drift detector:", drift_detector)
 
     # Load feature extractor
-    feature_extractor = model.resnet
+    feature_extractor = model.resnet.to(device)
     feature_extractor.eval()
+    drift_detector.eval()
 
-    for filename in os.listdir(folder_path):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-            image_path = os.path.join(folder_path, filename)
-            try:
-                image = load_image(image_path)
-                image_tensor = preprocess_image(image, device, args)
+    for batch_idx, x in enumerate(train_loader):
+        x = x.to(device)
+        with torch.no_grad():
+            if args.add_drift:
+                x = synthesize_data_drift(x)
 
-                # Detect drift
-                p_val = detect_drift(
-                    input_data=image_tensor,
-                    feature_extractor=feature_extractor,
-                    drift_detector=drift_detector
-                )
+            features = feature_extractor(x)
+            score = drift_detector(features)
+            p_val = drift_detector.compute_p_value(features)
 
-                if p_val < 0.01:
-                    raise RuntimeError("Drift has been detected in input!")
-
-                start_time = time.time()
-                predicted_class = predict(model, image_tensor)
-                elapsed_time = time.time() - start_time
-
-                class_name = get_class_name(predicted_class)
-                print(f"{filename} -> Predicted Model: {class_name} (Inference time: {elapsed_time:.4f} seconds)")
-            except Exception as e:
-                print(f"Error processing {filename}: {e}")
+        if p_val.item() < 0.01:
+            print("DATA DRIFT DETECTED!")
+            print(f"[Batch {batch_idx}] Drift score: {score.item():.4f} | p-value: {p_val.item():.4f}")
+            sys.exit(1)
+        else:
+            print("No drift detected!")
 
 if __name__ == "__main__":
     main()
+
